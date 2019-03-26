@@ -1,0 +1,37 @@
+#create a network and add our services into this network:
+#so, "app" service will be able to connect to the mysql database from "db" servoce by the hostname="db":
+#jdbc:mysql://db:3306/DOCKERDB
+
+#Connection url for connection in the DatabaseView:
+#  jdbc:mysql://0.0.0.0:13306/DOCKERDB, login=root, password=root
+#App is available at: http://localhost:18080/entitybus/post
+version: "2.1"
+
+networks:
+  test:
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "18080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - test
+
+  db:
+    image: opavlova/db-mysql:5.7-test
+    container_name: db
+    ports:
+      - "13306:3306"
+    healthcheck:
+          test: ["CMD", "mysql", "-h", "localhost", "-P", "3306", "-u", "root", "--password=root", "-e", "select 1", "DOCKERDB"]
+          interval: 1s
+          timeout: 3s
+          retries: 30
+    networks:
+      - test

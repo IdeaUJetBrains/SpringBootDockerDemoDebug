@@ -1,0 +1,53 @@
+Created by Olga Pavlova
+Olga.Pavlova@jetbrains.com
+
+Task:
+Build(maven) and run the application inside the container with the connection to the container mysql database.
+
+It is a spring boot application for the local bus service.
+The database image is already pre-populated and its name is: opavlova/db-mysql:5.7-test
+    container mysql port: 3306
+    db name: DOCKERDB
+    password: root
+    login: root
+
+For it I have a docker-compose file with two services.
+One is the application itself, built with the Dockerfile using maven. Another is the mysql database.
+
+
+Steps:
+1. Install Docker integration plugin if it is not installed
+2. Run docker-compose.yml file, for it do one of the following:
+-go to the Project View, call context menu, choose "Run..."
+-go to Run->Edit Configurations->create DockerCompose run configuration, point the docker-compose.yml file
+-run it
+
+
+Problems, that can happen:
+1. the images are not re-build
+ To fix: go to the created docker-compose run configuration and turn on the option "--build, force build images"
+
+2. if the port is allocated:
+ -check that there is no already running containers at the host ports, pointed in the compose files (13306 for mysql and 18080 for the app container)
+
+3. the "connection link failure" in the application container
+To fix:
+-check the correctness of the database url from  src\main\resources\application.properties
+It should be jdbc:mysql://<db_container_name>:<db_container_port>/DOCKERDB
+-try to delete the created "app" container and re-run the compose file(run configuration) again with "--build" option on.
+
+
+Tips:
+-run commands like "bash" etc inside the containers:
+use DockerView->select a container->context menu-> "exec"
+
+-select one of the services to run in the compose file:
+go to the compose run configuration, select any service(s) in the "Services" field
+
+-you can connect to the database via Database view:
+go to the DataabseView->+->DataSource from Url
+url: jdbc:mysql://0.0.0.0:13306/DOCKERDB
+
+-you can check the working conternerized application:
+upon executing GET request at http://127.0.0.1:18080/entitybus/post
+
