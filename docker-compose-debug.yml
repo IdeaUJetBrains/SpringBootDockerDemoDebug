@@ -20,7 +20,8 @@ services:
       context: .
       dockerfile: Dockerfile_debug
     ports:
-      - "18080:8080"
+      - "18080:8080" # For HTTP requests
+      - "5005:5005"  # For debugging
     depends_on:
       db:
         condition: service_healthy
