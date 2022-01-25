@@ -3,11 +3,11 @@
 #don't forget in compose run config set=true "--build/force build images"
 
 #create a network and add our services into this network:
-#so, "app" service will be able to connect to the mysql database from "db" servoce by the hostname="db":
-#jdbc:mysql://db:3306/DOCKERDB
+#so, "app" service will be able to connect to the mysql database from "db" service by the hostname="db":
+#jdbc:mysql://db:3306/DOCKERDB?useSSL=false
 
 #Connection url for connection in the DatabaseView:
-#  jdbc:mysql://0.0.0.0:13306/DOCKERDB, login=root, password=root
+#  jdbc:mysql://0.0.0.0:13306/DOCKERDB?useSSL=false, login=root, password=root
 #App is available at: http://localhost:18080/entitybus/post
 version: "2.1"
 
@@ -20,7 +20,8 @@ services:
       context: .
       dockerfile: Dockerfile_debug
     ports:
-      - "18080:8080"
+      - "18080:8080" # For HTTP requests
+      - "5005:5005"  # For debugging
     depends_on:
       db:
         condition: service_healthy
