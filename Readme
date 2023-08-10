@@ -2,7 +2,7 @@ Created by Olga Pavlova
 Olga.Pavlova@jetbrains.com
 
 Task:
-Debug the SpringBoot application, which is built(maven) inside the container with the connection to the container mysql database.
+Debug the SpringBoot application by running it inside one container with the connection to the mysql database from another container.
 
 It is a spring boot application for the local bus service.
 The database image is already pre-populated and its name is: opavlova/db-mysql:5.7-test
@@ -12,48 +12,59 @@ The database image is already pre-populated and its name is: opavlova/db-mysql:5
     login: root
 
 For it I have a docker-compose file with two services.
-One is the application itself, built with the Dockerfile using maven. Another is the mysql database.
+One contains only java for running the application. Another is the mysql database.
 
 
 Steps:
 1. Install Docker integration plugin if it is not installed
-2. Create a remote run configuration with docker-compose_debug.yml in the before launch section, for it do the following:
--go to the Project View, call context menu, choose "Create...", press Ok
--go docker-compose_debug.yml file, click "Debug" gutter(or Run->Edit Configurations->create Remote run configuration):
-    point another debug port->Apply
-    add "Launch docker before debug" in the "Before Launch" section (check that the custom command is Ok), Press Ok
--run debug
+2. Create a SpringBoot run configuration with the docker-compose run target
+-create a spring boot run configuration if not created (class  com.example.demo.DemoApplication)
+-click on "Manage targets" in the "Run on" section
+-click "Add new target..."->"Docker Compose..."
+-the docker-compose file is auto-selected (or you can select any other file)
+-select "java" service
+-click "Next" and wait until the target image is built and java path is auto-detected
+-click "Next" and see the detected JDK home and version
+-click "Create" and see the created target in the Run Targets dialog
+-click OK
+-select in the "Run on" field the created target
+Note: you can create a target using a Dockerfile, an image or a docker-compose file. But in this case we use a Compose target because we need to add the both services into one network, so the application from one container can have access to the database from another container.
+5. Create a docker-compose run configuration with the database:
+-go to Run configurations->Add->Docker->Docker Compose
+-select docker-compose.yaml file
+-select "db" Service in the "Service" field
+-press "Apply"
+6. DB should run before staring the application:
+-open Spring Boot run configuration
+-click "Modify options"
+-select "Add before launch task" in the "Before Launch" section
+-select "Run Another Configuration" task
+-select the created docker-compose run configuration
+-Apply
+Spring Boot run configuration starts only if DB starts Ok, for it we have a healthcheck in the db compose service. If the database doesn't start(the service is unhealthy) then the Spring Boot run configuration will not be started.
+
+Now you can run and debug the spring boot application.
+The app is here: http://localhost:<local-port>/entitybus/post
+Note: <local-port> is a random port provided by Docker, you can find it in the Run/Debug window, there will be something like "Application port 8080 is bound to local port 50855"
+DB is available here: jdbc:mysql://0.0.0.0:13306/DOCKERDB
 
 
 Problems, that can happen:
-1. the images are not re-build
- To fix: go to the created docker-compose run configuration and turn on the option "--build, force build images"
+1. the target image build doesn't find java
+ To fix:
+ -maybe your image doesn't have java, take another image.
+ -press "Previous" button and "Next" again, maybe for the first time something went wrong
 
-2. if the port is allocated:
- -check that there is no already running containers at the host ports, pointed in the compose files (13306 for mysql and 18080 for the app container)
- If debug port  is allocated then set another port
-
-3. the "connection link failure" in the application container
+2. the "connection link failure" in the application container
 To fix:
 -check the correctness of the database url from  src\main\resources\application.properties
-It should be jdbc:mysql://<db_container_name>:<db_container_port>/DOCKERDB
--try to delete the created "app" container and re-run the compose file(run configuration) again with "--build" option on.
+It should be in our case jdbc:mysql://db:3306/DOCKERDB
 
-4. Debug re-run doesn't work.
-To fix: Run it once more. It happens that it fails to re-run(IDEA-209225).
 
-5. Custom command is not changed after save (IDEA-207868)
-To fix: delete the remote run config, create it again
-
-6. Debug doesn't work at all, the error "Unable to locate started container" appears after 2 min:
--check that "HEALTHCHECK"=false if there is no healthcheck for running docker container.
-
-7. The command for debug doesn't contain the needed "running" options.
-To Fix:
-  the command appears automatically if:
-    for Dockerfile - Command field of the docker run config contains this command
-    for docker compose:  there is the "command" key with the command for a service
-  write it manually in the Custom Command field of the "Docker Configuration" dialog in the "Before Launch" section
+3. The Spring Boot configuration doesn't start, Docker Compose with the database is started.
+To fix:
+-check the "Healthy" state of the service. Maybe it is unhealthy and the Spring Boot app cannot be run because of it.
+You need to make it healthy(db should run ok).
 
 
 
@@ -68,6 +79,7 @@ go to the compose run configuration, select any service(s) in the "Services" fie
 go to the DataabseView->+->DataSource from Url
 url: jdbc:mysql://0.0.0.0:13306/DOCKERDB
 
--you can check the working conternerized application:
-upon executing GET request at http://127.0.0.1:18080/entitybus/post
-
+-you can check the working application:
+upon executing GET request at http://127.0.0.1:<local port>/entitybus/post
+Note: find the <local-port> in the Run/Debug window, there will be something like "Application port 8080 is bound to local port 50855"
+So, then we have: http://127.0.0.1:50855/entitybus/post
