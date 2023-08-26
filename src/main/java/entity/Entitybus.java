@@ -1,9 +1,8 @@
 package entity;
 
-import org.hibernate.annotations.Cache;
-import org.hibernate.annotations.CacheConcurrencyStrategy;
+import jakarta.persistence.*;
 
-import javax.persistence.*;
+import java.util.Objects;
 
 /**
  * Created by Olga Pavlova on 9/16/2016.
@@ -44,7 +43,7 @@ public class Entitybus {
         Entitybus entitybus = (Entitybus) o;
 
         if (eid != entitybus.eid) return false;
-        if (enumber != null ? !enumber.equals(entitybus.enumber) : entitybus.enumber != null) return false;
+        if (!Objects.equals(enumber, entitybus.enumber)) return false;
 
         return true;
     }

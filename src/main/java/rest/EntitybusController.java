@@ -7,8 +7,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import rep.EntitybusRepository;
 
-import java.util.Random;
-
 @RestController
 @RequestMapping("/entitybus")
 public class EntitybusController {
@@ -23,7 +21,7 @@ public class EntitybusController {
     @RequestMapping("/post")
     public Iterable postEntity() {
         Entitybus o = new Entitybus();
-        int num = (int) (Math.random()*10);
+        int num = (int) (Math.random() * 10);
         o.setEid(num);
         o.setEnumber("blah" + num);
         entitybusRepository.save(o);
