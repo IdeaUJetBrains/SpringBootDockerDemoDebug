@@ -5,7 +5,7 @@ Task:
 Debug the SpringBoot application by running it inside one container with the connection to the mysql database from another container.
 
 It is a spring boot application for the local bus service.
-The database image is already pre-populated and its name is: opavlova/db-mysql:5.7-test
+The database image is already pre-populated and its name is: mysql:8.1.0
     container mysql port: 3306
     db name: DOCKERDB
     password: root
